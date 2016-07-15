@@ -64,6 +64,8 @@ public class ScrollLayoutView extends ViewGroup {
         }
         leftBorder = getChildAt(0).getLeft();
         rightBorder = getChildAt(childCount - 1).getRight();
+//        Log.i("log::::::::leftBorder", "leftBorder:" + leftBorder);
+//        Log.i("log::::::::rightBorder", "rightBorder:" + rightBorder);
     }
 
     @Override
@@ -74,12 +76,13 @@ public class ScrollLayoutView extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
                 mDownX = (int) ev.getRawX();
                 mLastX = mDownX;
+//                Log.i("log>>>mLastX：", "mLastX：" + mLastX);
                 break;
             case MotionEvent.ACTION_MOVE:
                 int mMoveX = (int) ev.getRawX();
-                Log.i("moveX", "mMoveX:" + mMoveX);
-                mLastX = mMoveX;
                 int diff = Math.abs(mMoveX - mDownX);
+                mLastX = mMoveX;
+
                 //如果滑距离大于最小滑动值mTouchSlop,则拦截事件，不让他让子View传递。
                 if (diff > mTouchSlop) {
                     return true;
@@ -97,28 +100,43 @@ public class ScrollLayoutView extends ViewGroup {
     public boolean onTouchEvent(MotionEvent event) {
         int mAction = event.getAction();
         switch (mAction) {
-//            case MotionEvent.ACTION_DOWN:
-//                int mDownX = (int) event.getRawX();
-//                mLastX = mDownX;
-//                break;
             case MotionEvent.ACTION_MOVE:
                 int mMoveX = (int) event.getRawX();
-                int scrolledX = mLastX - mMoveX;
+//                Log.i("log>>>mMoveX：", "mMoveX：" + mMoveX);
+//                Log.i("log>>>mLastX：", "mLastX：" + mLastX);
 
-                if (getScrollX() + scrolledX < leftBorder) {
+                int diffScrolledX = mLastX - mMoveX;
+//                Log.i("log>>>>>>diffScrolledX", "diffScrolledX:" + diffScrolledX);
+//                Log.i("log>>>>>>getScrollX", "getScrollX:" + getScrollX());
+
+
+                /**
+                 * getScrollX的值是容器parentView的子View滑动的相对于parentView的左边界的X轴方向的距离，
+                 *getScollerX内容（子View）,向右向下为负数，向左向上为正数。
+                 *
+                 *已经滑倒都一个页面，手指继续向右滑动，此时diffScrolledX是负值。
+                 */
+                if (getScrollX() + diffScrolledX < leftBorder) {
                     scrollTo(leftBorder, 0);
                     return true;
-                } else if (getScrollX() + getWidth() + scrolledX > rightBorder) {
+                }
+                /**
+                 * 滑到最后一个页面，手指如果继续向左滑动，此时的此时diffScrolledX是正数。
+                 */
+                else if (getScrollX() + getWidth() + diffScrolledX > rightBorder) {
                     scrollTo(rightBorder - getWidth(), 0);
                     return true;
                 }
 
-                scrollBy(scrolledX, 0);
+                scrollBy(diffScrolledX, 0);
                 mLastX = mMoveX;
                 break;
             case MotionEvent.ACTION_UP:
                 int targetIndex = (getScrollX() + getWidth() / 2) / getWidth();
+                Log.i("log>>>targetIndex", "targetIndex:" + targetIndex);
+                Log.i("log>>>getScrollX()", "getScrollX():" + getScrollX());
                 int dx = targetIndex * getWidth() - getScrollX();
+                Log.i("log>>>dx", "dx:" + dx);
                 mScroll.startScroll(getScrollX(), 0, dx, 0);
                 invalidate();
                 break;
@@ -130,7 +148,11 @@ public class ScrollLayoutView extends ViewGroup {
     public void computeScroll() {
         super.computeScroll();
         if (mScroll.computeScrollOffset()) {
-            scrollTo(mScroll.getCurrX(), mScroll.getCurrY());
+            int currX = mScroll.getCurrX();
+            int currY = mScroll.getCurrY();
+            scrollTo(currX, currY);
+            Log.i("log>>>>>>>>>>currX", "currX:" + currX);
+            Log.i("log>>>>>>>>>>currY", "currY:" + currY);
             invalidate();
         }
     }
