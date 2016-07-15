@@ -1,5 +1,2 @@
 # wang_PD_demo
-一个简单的测试
-
-
-一个简单的测试
+利用Scoller，自定义View实现ViewPager的功能
